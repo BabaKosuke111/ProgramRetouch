@@ -5,8 +5,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 
 import base.DBManager;
+import beans.BuyDataBeans;
 import beans.UserDataBeans;
 import ec.EcHelper;
 
@@ -221,5 +223,41 @@ public class UserDAO {
 		System.out.println("overlap check has been completed");
 		return isOverlap;
 	}
+	public static ArrayList<BuyDataBeans> getItemDetailDataBeansByBuyId(int userId) throws SQLException {
+		Connection con = null;
+		PreparedStatement st = null;
+		try {
+			con = DBManager.getConnection();
 
+			st = con.prepareStatement(" select * from t_buy join m_delivery_method on m_delivery_method.id=t_buy.delivery_method_id where user_id=? order by create_date desc");
+			st.setInt(1, userId);
+
+			ResultSet rs = st.executeQuery();
+
+
+			ArrayList<BuyDataBeans> buyDataList=new ArrayList<BuyDataBeans>();
+			while (rs.next()) {
+				BuyDataBeans bdb = new BuyDataBeans();
+				bdb.setId(rs.getInt("id"));
+				bdb.setUserId(rs.getInt("user_id"));
+				bdb.setTotalPrice(rs.getInt("total_price"));
+				bdb.setDelivertMethodId(rs.getInt("delivery_method_id"));
+				bdb.setDeliveryMethodName(rs.getString("name"));
+				bdb.setDeliveryMethodPrice(rs.getInt("price"));
+				bdb.setBuyDate(rs.getTimestamp("create_date"));
+				buyDataList.add(bdb);
+			}
+
+			System.out.println("searching  List<BuyDataBeans> by BuyID has been completed");
+			return buyDataList;
+		} catch (SQLException e) {
+			System.out.println(e.getMessage());
+			throw new SQLException(e);
+		} finally {
+			if (con != null) {
+				con.close();
+			}
+		}
+
+	}
 }

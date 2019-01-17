@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 import base.DBManager;
+import beans.BuyDataBeans;
 import beans.BuyDetailDataBeans;
 import beans.ItemDataBeans;
 
@@ -103,7 +104,7 @@ public class BuyDetailDAO {
 					+ " FROM t_buy_detail"
 					+ " JOIN m_item"
 					+ " ON t_buy_detail.item_id = m_item.id"
-					+ " WHERE t_buy_detail.buy_id = ?");
+					+ " WHERE t_buy_detail.buy_id = ? ");
 			st.setInt(1, buyId);
 
 			ResultSet rs = st.executeQuery();
@@ -130,5 +131,38 @@ public class BuyDetailDAO {
 			}
 		}
 	}
+	public static BuyDataBeans getDetail(int buyId) throws SQLException {
+		Connection con = null;
+		PreparedStatement st = null;
+		try {
+			con = DBManager.getConnection();
+
+			st = con.prepareStatement(
+					"select * from t_buy join m_delivery_method on m_delivery_method.id=t_buy.delivery_method_id where t_buy.id=?");
+			st.setInt(1, buyId);
+
+			ResultSet rs = st.executeQuery();
+
+			BuyDataBeans bdb = new BuyDataBeans();
+			if (rs.next()) {
+				bdb.setBuyDate( rs.getTimestamp("create_date"));
+				bdb.setDeliveryMethodName(rs.getString("name"));
+				bdb.setTotalPrice(rs.getInt("total_price"));
+				bdb.setDeliveryMethodPrice(rs.getInt("price"));
+			}
+
+			System.out.println("searching BuyDataBeans by ID has been completed");
+
+			return bdb;
+		} catch (SQLException e) {
+			System.out.println(e.getMessage());
+			throw new SQLException(e);
+		} finally {
+			if (con != null) {
+				con.close();
+			}
+		}
+	}
+
 
 }
